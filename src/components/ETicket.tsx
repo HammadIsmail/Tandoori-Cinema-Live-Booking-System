@@ -2,6 +2,8 @@
 
 import { useRef } from "react";
 
+import html2canvas from "html2canvas";
+
 interface TicketData {
   bookingId: string;
   movieTitle: string;
@@ -18,75 +20,111 @@ interface TicketData {
 export default function ETicket({ ticket }: { ticket: TicketData }) {
   const ticketRef = useRef<HTMLDivElement>(null);
 
-  const handleDownload = async () => {
-    if (!ticketRef.current) return;
-
-    // Use html2canvas-style approach: create a canvas from the ticket
-    const el = ticketRef.current;
+  const handleDownload = () => {
+    const width = 400;
+    const height = 400;
     const canvas = document.createElement("canvas");
-    const scale = 2;
-    canvas.width = el.offsetWidth * scale;
-    canvas.height = el.offsetHeight * scale;
+    const scale = 2; // High-res export
+    canvas.width = width * scale;
+    canvas.height = height * scale;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Draw background
     ctx.scale(scale, scale);
+
+    // Base background & Border
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, el.offsetWidth, el.offsetHeight);
+    ctx.fillRect(0, 0, width, height);
+    ctx.strokeStyle = "#e5e7eb";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(1, 1, width - 2, height - 2);
 
-    // Draw content using foreignObject approach via SVG
-    const data = new XMLSerializer().serializeToString(
-      (() => {
-        const div = document.createElement("div");
-        div.innerHTML = `
-          <div style="width:${el.offsetWidth}px;padding:24px;font-family:Arial,sans-serif;color:#1A1A1A;">
-            <div style="text-align:center;margin-bottom:16px;">
-              <div style="font-size:20px;font-weight:bold;">Mall1<span style="color:#FF6A00;">Tandoori</span></div>
-              <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:2px;">E-Ticket</div>
-            </div>
-            <div style="border-top:2px dashed #ddd;padding-top:12px;margin-top:8px;">
-              <div style="font-size:18px;font-weight:bold;margin-bottom:8px;">${ticket.movieTitle}</div>
-              <div style="font-size:13px;color:#666;margin-bottom:4px;">${ticket.hallName} • ${ticket.format}</div>
-              <div style="font-size:13px;color:#666;margin-bottom:4px;">${ticket.date} at ${ticket.time}</div>
-              <div style="font-size:13px;color:#666;margin-bottom:8px;">Seats: ${ticket.seats.join(", ")}</div>
-              <div style="display:flex;justify-content:space-between;border-top:2px dashed #ddd;padding-top:8px;margin-top:8px;">
-                <div>
-                  <div style="font-size:10px;color:#888;text-transform:uppercase;">Amount Paid</div>
-                  <div style="font-size:16px;font-weight:bold;color:#E63946;">Rs. ${ticket.totalAmount}</div>
-                </div>
-                <div style="text-align:right;">
-                  <div style="font-size:10px;color:#888;text-transform:uppercase;">Booking ID</div>
-                  <div style="font-size:11px;font-weight:bold;">${ticket.bookingId.slice(0, 8).toUpperCase()}</div>
-                </div>
-              </div>
-            </div>
-            <div style="text-align:center;margin-top:12px;font-size:10px;color:#888;">
-              Show this ticket at the cinema entrance
-            </div>
-          </div>
-        `;
-        return div;
-      })()
-    );
+    // Header background (Gradient)
+    const gradient = ctx.createLinearGradient(0, 0, width, 0);
+    gradient.addColorStop(0, "#FF6A00");
+    gradient.addColorStop(1, "#FF8A3D");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(2, 2, width - 4, 80);
 
-    const img = new Image();
-    const svgBlob = new Blob(
-      [`<svg xmlns="http://www.w3.org/2000/svg" width="${el.offsetWidth}" height="${el.offsetHeight}"><foreignObject width="100%" height="100%">${data}</foreignObject></svg>`],
-      { type: "image/svg+xml;charset=utf-8" }
-    );
-    const url = URL.createObjectURL(svgBlob);
+    // Header Text
+    ctx.textAlign = "center";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+    ctx.font = "12px Arial, sans-serif";
+    ctx.fillText("E-TICKET", width / 2, 35);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 22px Arial, sans-serif";
+    ctx.fillText("Mall1Tandoori", width / 2, 60);
 
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0);
-      URL.revokeObjectURL(url);
+    // Body text
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#1A1A1A";
+    ctx.font = "bold 22px Arial, sans-serif";
+    ctx.fillText(ticket.movieTitle, 30, 130);
 
-      const link = document.createElement("a");
-      link.download = `ticket-${ticket.bookingId.slice(0, 8)}.png`;
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-    };
-    img.src = url;
+    ctx.fillStyle = "#6b7280";
+    ctx.font = "14px Arial, sans-serif";
+    ctx.fillText(`${ticket.hallName} • ${ticket.format}`, 30, 160);
+    ctx.fillText(`${ticket.date} at ${ticket.time}`, 30, 185);
+
+    // Seats row
+    ctx.fillText("Seats: ", 30, 215);
+    let xOffset = 80;
+    ticket.seats.forEach((seat) => {
+      ctx.fillStyle = "#f3f4f6";
+      if (ctx.roundRect) {
+        ctx.beginPath();
+        ctx.roundRect(xOffset, 200, 32, 20, 10);
+        ctx.fill();
+      } else {
+        ctx.fillRect(xOffset, 200, 32, 20);
+      }
+      ctx.fillStyle = "#1A1A1A";
+      ctx.font = "bold 12px Arial, sans-serif";
+      const metrics = ctx.measureText(seat);
+      const textX = xOffset + (32 - metrics.width) / 2;
+      ctx.fillText(seat, textX, 214);
+      xOffset += 38;
+    });
+
+    // Divider line
+    ctx.strokeStyle = "#e5e7eb";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(30, 250);
+    ctx.lineTo(width - 30, 250);
+    ctx.stroke();
+    ctx.setLineDash([]); // Reset dash
+
+    // Amount Paid & Booking ID
+    ctx.fillStyle = "#9ca3af";
+    ctx.font = "10px Arial, sans-serif";
+    ctx.fillText("AMOUNT PAID", 30, 280);
+    ctx.fillStyle = "#E63946";
+    ctx.font = "bold 20px Arial, sans-serif";
+    ctx.fillText(`Rs. ${ticket.totalAmount}`, 30, 305);
+
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#9ca3af";
+    ctx.font = "10px Arial, sans-serif";
+    ctx.fillText("BOOKING ID", width - 30, 280);
+    ctx.fillStyle = "#1A1A1A";
+    ctx.font = "bold 18px Arial, sans-serif";
+    ctx.fillText(ticket.bookingId.slice(0, 8).toUpperCase(), width - 30, 305);
+
+    // Footer section
+    ctx.fillStyle = "#f9fafb";
+    ctx.fillRect(2, height - 50, width - 4, 48);
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#9ca3af";
+    ctx.font = "10px Arial, sans-serif";
+    ctx.fillText("SHOW THIS TICKET AT THE CINEMA ENTRANCE", width / 2, height - 20);
+
+    // Download image
+    const link = document.createElement("a");
+    link.download = `ticket-${ticket.bookingId.slice(0, 8)}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
   };
 
   return (

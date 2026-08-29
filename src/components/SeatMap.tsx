@@ -65,6 +65,54 @@ function getStatusColor(status: SeatStatus): string {
   }
 }
 
+function ChairIcon({ status, tier, label }: { status: string, tier: string, label: string | number }) {
+  let fillColor = "#f3f4f6"; // default available
+  let strokeColor = "#d1d5db";
+  let textColor = "#4b5563";
+
+  if (status === "selected") {
+    fillColor = "#FF6A00";
+    strokeColor = "#ea580c";
+    textColor = "#ffffff";
+  } else if (status === "booked") {
+    fillColor = "#E63946";
+    strokeColor = "#be123c";
+    textColor = "#ffffff";
+  } else if (status === "held" || status === "pending") {
+    fillColor = "#fbbf24";
+    strokeColor = "#d97706";
+    textColor = "#ffffff";
+  } else if (tier === "vip") {
+    fillColor = "#f3e8ff"; 
+    strokeColor = "#d8b4fe"; 
+    textColor = "#7e22ce"; 
+  } else if (tier === "gold") {
+    fillColor = "#fffbeb"; 
+    strokeColor = "#fcd34d"; 
+    textColor = "#b45309"; 
+  }
+
+  return (
+    <div className={`relative w-8 h-10 md:w-10 md:h-12 transition-transform duration-200 flex items-center justify-center ${status === "selected" ? "scale-110 drop-shadow-md z-10" : "hover:scale-110 hover:z-10"}`}>
+      <svg viewBox="0 0 40 48" className="w-full h-full drop-shadow-sm">
+        {/* Chair Back */}
+        <path d="M10 4 C10 2 12 0 15 0 L25 0 C28 0 30 2 30 4 L30 22 C30 23 29 24 28 24 L12 24 C11 24 10 23 10 22 Z" fill={fillColor} stroke={strokeColor} strokeWidth="1.5" />
+        {/* Headrest dark patch */}
+        <rect x="14" y="2" width="12" height="6" rx="1.5" fill="rgba(0,0,0,0.15)" />
+        {/* Seat Bottom */}
+        <path d="M8 22 C8 20 10 20 12 20 L28 20 C30 20 32 20 32 22 L32 30 C32 34 30 36 26 36 L14 36 C10 36 8 34 8 30 Z" fill={fillColor} stroke={strokeColor} strokeWidth="1.5" />
+        {/* Armrests */}
+        <rect x="4" y="12" width="5" height="14" rx="2.5" fill="#374151" />
+        <rect x="31" y="12" width="5" height="14" rx="2.5" fill="#374151" />
+        {/* Label */}
+        <text x="20" y="28" fontSize="11" fontWeight="900" fill={textColor} textAnchor="middle" dy=".35em">
+          {label}
+        </text>
+      </svg>
+    </div>
+  );
+}
+
 export default function SeatMap({
   hallId,
   showtimeId,
@@ -234,12 +282,12 @@ export default function SeatMap({
   );
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto pb-10">
       {/* Screen indicator */}
-      <div className="mb-8 text-center">
+      <div className="mb-12 text-center">
         <div className="relative mx-auto max-w-md">
-          <div className="h-2 bg-gradient-to-r from-transparent via-[#FF6A00] to-transparent rounded-full" />
-          <p className="text-xs text-gray-400 mt-2 uppercase tracking-widest">
+          <div className="h-2 bg-gradient-to-r from-transparent via-[#FF6A00] to-transparent rounded-full shadow-[0_0_15px_rgba(255,106,0,0.5)]" />
+          <p className="text-xs text-gray-400 mt-3 uppercase tracking-[0.3em] font-bold">
             Screen
           </p>
         </div>
@@ -247,19 +295,19 @@ export default function SeatMap({
 
       {/* Seat Grid — 3D perspective */}
       <div
-        className="flex flex-col items-center gap-1.5 pb-8"
-        style={{ perspective: "800px" }}
+        className="flex flex-col items-center gap-2 pb-8"
+        style={{ perspective: "1000px" }}
       >
         {sortedRows.map(([rowLabel, rowSeats]) => (
           <div
             key={rowLabel}
-            className="flex items-center gap-1.5"
+            className="flex items-center gap-2"
             style={{
-              transform: "rotateX(15deg)",
-              transformOrigin: "center bottom",
+              transform: "rotateX(20deg)",
+              transformStyle: "preserve-3d",
             }}
           >
-            <span className="w-6 text-xs font-bold text-gray-400 text-right mr-1">
+            <span className="w-8 text-sm font-extrabold text-gray-400 text-right mr-2">
               {rowLabel}
             </span>
             {rowSeats
@@ -276,16 +324,12 @@ export default function SeatMap({
                         seat.status === "held" ||
                         seat.status === "pending"
                       }
-                      className={`w-8 h-8 md:w-9 md:h-9 rounded-t-lg border-2 text-[10px] font-bold transition-all duration-200 flex items-center justify-center ${
-                        seat.status === "selected" || seat.status === "available"
-                          ? getStatusColor(seat.status) || getTierColor(seat.tier)
-                          : getStatusColor(seat.status)
-                      }`}
+                      className={`focus:outline-none focus:ring-2 focus:ring-[#FF6A00] rounded-xl transition-all duration-200 ${seat.status !== "available" && seat.status !== "selected" ? "cursor-not-allowed opacity-80" : ""}`}
                       title={`${seat.row_label}${seat.seat_number} — ${seat.tier.toUpperCase()} — Rs. ${seat.price}`}
                     >
-                      {seat.seat_number}
+                      <ChairIcon status={seat.status} tier={seat.tier} label={seat.seat_number} />
                     </button>
-                    {aisleAfter && <div className="w-3" />}
+                    {aisleAfter && <div className="w-6" />}
                   </span>
                 );
               })}

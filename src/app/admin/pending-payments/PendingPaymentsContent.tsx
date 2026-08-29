@@ -26,6 +26,7 @@ export default function PendingPaymentsContent({
 }) {
   const [items, setItems] = useState(bookings);
   const [loading, setLoading] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const supabase = createClient();
 
   const handleApprove = async (booking: BookingWithDetails) => {
@@ -102,17 +103,21 @@ export default function PendingPaymentsContent({
                 {/* Screenshot */}
                 {booking.payment_screenshot_url && (
                   <div className="w-full md:w-48 flex-shrink-0">
-                    <a
-                      href={booking.payment_screenshot_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => setSelectedImage(booking.payment_screenshot_url)}
+                      className="w-full h-48 block relative rounded-xl overflow-hidden border focus:outline-none focus:ring-2 focus:ring-[#FF6A00] group"
                     >
                       <img
                         src={booking.payment_screenshot_url}
                         alt="Payment screenshot"
-                        className="w-full h-48 object-cover rounded-xl border"
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                       />
-                    </a>
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                        <svg className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                        </svg>
+                      </div>
+                    </button>
                     <p className="text-[10px] text-gray-400 text-center mt-1">
                       Click to view full size
                     </p>
@@ -186,6 +191,31 @@ export default function PendingPaymentsContent({
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div className="relative max-w-5xl max-h-[90vh] w-full h-full flex items-center justify-center">
+            <button 
+              className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center text-white transition backdrop-blur-md"
+              onClick={() => setSelectedImage(null)}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <img 
+              src={selectedImage} 
+              alt="Full size payment screenshot" 
+              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
         </div>
       )}
     </>
