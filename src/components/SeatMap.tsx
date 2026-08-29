@@ -189,6 +189,8 @@ export default function SeatMap({
     fetchSeats();
   }, [fetchSeats]);
 
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
+
   // Subscribe to realtime changes
   useEffect(() => {
     const channel = supabase
@@ -213,7 +215,11 @@ export default function SeatMap({
   // Handle seat click
   const handleSeatClick = async (seat: SeatWithStatus) => {
     if (seat.status === "booked" || seat.status === "held" || seat.status === "pending") return;
-    if (!userId) return;
+    
+    if (!userId) {
+      setShowAuthDialog(true);
+      return;
+    }
 
     if (seat.status === "selected") {
       // Deselect — remove hold
@@ -282,12 +288,43 @@ export default function SeatMap({
   );
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto pb-10 relative">
+      {/* Auth Dialog Overlay */}
+      {showAuthDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 bg-[#FF6A00]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-[#FF6A00]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Sign in Required</h3>
+            <p className="text-gray-500 mb-6 text-sm">
+              You need to be logged in to reserve seats. Please log in or create an account to continue.
+            </p>
+            <div className="flex flex-col gap-3">
+              <a 
+                href={`/login?redirect=${encodeURIComponent(`/seat-selection?showtime=${showtimeId}`)}`}
+                className="w-full bg-[#FF6A00] hover:bg-[#e65c00] text-white font-bold py-3 rounded-xl transition-colors block text-center"
+              >
+                Sign In / Register
+              </a>
+              <button 
+                onClick={() => setShowAuthDialog(false)}
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Screen indicator */}
-      <div className="mb-8 text-center">
+      <div className="mb-12 text-center">
         <div className="relative mx-auto max-w-md">
-          <div className="h-2 bg-gradient-to-r from-transparent via-[#FF6A00] to-transparent rounded-full" />
-          <p className="text-xs text-gray-400 mt-2 uppercase tracking-widest">
+          <div className="h-2 bg-gradient-to-r from-transparent via-[#FF6A00] to-transparent rounded-full shadow-[0_0_15px_rgba(255,106,0,0.5)]" />
+          <p className="text-xs text-gray-400 mt-3 uppercase tracking-[0.3em] font-bold">
             Screen
           </p>
         </div>
