@@ -119,23 +119,6 @@ export default function SeatSelectionContent({
 
           {/* Order Summary & Preview */}
           <div className="w-full lg:w-80 space-y-6">
-            {/* 3D Chair Preview */}
-            <div className="bg-black rounded-2xl shadow-sm overflow-hidden relative group border-4 border-gray-100 aspect-square">
-               <div className="sketchfab-embed-wrapper w-full h-full">
-                  <iframe 
-                    title="Cinema chair" 
-                    frameBorder="0" 
-                    allowFullScreen 
-                    allow="autoplay; fullscreen; xr-spatial-tracking" 
-                    src="https://sketchfab.com/models/c958af2d31244964a75f4b967d315b93/embed?autostart=1&preload=1&transparent=1&ui_infos=0&ui_watermark=0&ui_stop=0" 
-                    className="w-full h-full"
-                  />
-               </div>
-               <div className="absolute top-3 left-3 bg-black/60 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full backdrop-blur-sm pointer-events-none shadow-lg">
-                 3D Seat Preview
-               </div>
-            </div>
-
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-4">
               <h3 className="font-bold text-[#1A1A1A] mb-4">Order Summary</h3>
 

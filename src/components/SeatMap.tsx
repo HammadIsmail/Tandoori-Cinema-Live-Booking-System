@@ -282,12 +282,12 @@ export default function SeatMap({
   );
 
   return (
-    <div className="overflow-x-auto pb-10">
+    <div className="overflow-x-auto">
       {/* Screen indicator */}
-      <div className="mb-12 text-center">
+      <div className="mb-8 text-center">
         <div className="relative mx-auto max-w-md">
-          <div className="h-2 bg-gradient-to-r from-transparent via-[#FF6A00] to-transparent rounded-full shadow-[0_0_15px_rgba(255,106,0,0.5)]" />
-          <p className="text-xs text-gray-400 mt-3 uppercase tracking-[0.3em] font-bold">
+          <div className="h-2 bg-gradient-to-r from-transparent via-[#FF6A00] to-transparent rounded-full" />
+          <p className="text-xs text-gray-400 mt-2 uppercase tracking-widest">
             Screen
           </p>
         </div>
