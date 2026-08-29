@@ -1,22 +1,21 @@
 import { createClient } from "@/lib/supabase/server";
 import TopBar from "@/components/TopBar";
 import Footer from "@/components/Footer";
-import HomeContent from "./HomeContent";
+import MoviesContent from "./MoviesContent";
 
-export default async function HomePage() {
+export default async function MoviesPage() {
   const supabase = await createClient();
 
   const { data: movies } = await supabase
     .from("movies")
     .select("*")
-    .eq("status", "now_showing")
     .order("created_at", { ascending: false });
 
   return (
     <>
       <TopBar />
       <main className="flex-1">
-        <HomeContent movies={movies || []} />
+        <MoviesContent movies={movies || []} />
       </main>
       <Footer />
     </>
