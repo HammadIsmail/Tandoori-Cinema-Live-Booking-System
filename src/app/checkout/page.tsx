@@ -41,6 +41,7 @@ export default async function CheckoutPage({
           showtime={showtime}
           profile={profile}
           userId={user.id}
+          email={user.email || ""}
         />
       </main>
     </>

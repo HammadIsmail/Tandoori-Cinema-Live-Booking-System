@@ -16,19 +16,20 @@ interface CheckoutContentProps {
   };
   profile: Profile | null;
   userId: string;
+  email: string;
 }
 
 export default function CheckoutContent({
   showtime,
   profile,
   userId,
+  email,
 }: CheckoutContentProps) {
   const [paymentMethod, setPaymentMethod] = useState<"jazzcash" | "easypaisa">(
     "jazzcash"
   );
   const [name, setName] = useState(profile?.name || "");
   const [phone, setPhone] = useState(profile?.phone || "");
-  const [email, setEmail] = useState("");
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -137,6 +138,23 @@ export default function CheckoutContent({
         .eq("seat_id", seat.id)
         .eq("showtime_id", showtime.id)
         .eq("user_id", userId);
+    }
+
+    // Trigger Pending Email
+    try {
+      await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "pending",
+          email: email,
+          bookingId: booking.id,
+          movieTitle: showtime.movies?.title,
+          totalAmount: selection.total,
+        }),
+      });
+    } catch (emailErr) {
+      console.error("Failed to send pending email:", emailErr);
     }
 
     sessionStorage.removeItem("bookingSelection");
@@ -318,13 +336,6 @@ export default function CheckoutContent({
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 required
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#FF6A00] transition"
-              />
-              <input
-                type="email"
-                placeholder="Email (optional)"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#FF6A00] transition"
               />
             </div>

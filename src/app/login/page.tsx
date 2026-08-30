@@ -22,7 +22,7 @@ function LoginForm() {
     setLoading(true);
     setError("");
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: authData, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -31,6 +31,20 @@ function LoginForm() {
       setError(error.message);
       setLoading(false);
       return;
+    }
+
+    if (authData.user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", authData.user.id)
+        .single();
+
+      if (profile?.role === "admin") {
+        router.push("/admin");
+        router.refresh();
+        return;
+      }
     }
 
     router.push(redirectUrl || "/");

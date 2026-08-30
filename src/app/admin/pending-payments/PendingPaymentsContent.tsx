@@ -52,6 +52,31 @@ export default function PendingPaymentsContent({
     setItems((prev) => prev.filter((b) => b.id !== booking.id));
     setLoading(null);
     showToast("Payment approved! Customer can now view their ticket.", "success");
+
+    // Trigger Ticket Email
+    try {
+      const email = booking.customer_email;
+      if (email) {
+        await fetch("/api/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "ticket",
+            email: email,
+            bookingId: booking.id,
+            movieTitle: booking.showtimes?.movies?.title || "Movie",
+            hallName: booking.showtimes?.halls?.name || "Cinema",
+            format: booking.showtimes?.format || "Standard",
+            date: booking.showtimes?.start_time ? new Date(booking.showtimes.start_time).toLocaleDateString("en-PK", { weekday: "short", month: "short", day: "numeric" }) : "",
+            time: booking.showtimes?.start_time ? new Date(booking.showtimes.start_time).toLocaleTimeString("en-PK", { hour: "2-digit", minute: "2-digit" }) : "",
+            seats: booking.booking_seats.map(bs => `${bs.seats?.row_label}${bs.seats?.seat_number}`),
+            totalAmount: booking.total_amount,
+          }),
+        });
+      }
+    } catch (emailErr) {
+      console.error("Failed to send ticket email:", emailErr);
+    }
   };
 
   const handleReject = async (booking: BookingWithDetails) => {
